@@ -184,6 +184,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _isdraggingPhoto = NO;
         
         _limitDelete = YES;
+        _onlyShowDeleteButton = YES;
 
         if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)])
             self.automaticallyAdjustsScrollViewInsets = NO;
@@ -824,7 +825,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [items addObject:flexSpace];
     
     if(_displayActionButton) {
-        [items addObject:_actionButton];
+        if (!_onlyShowDeleteButton) {
+            [items addObject:_actionButton];
+        }
+        
         [items insertObject:_deleteButton atIndex:0];
     }
     
