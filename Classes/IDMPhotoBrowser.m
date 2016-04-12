@@ -182,6 +182,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _scaleImage = nil;
 
         _isdraggingPhoto = NO;
+        
+        _limitDelete = YES;
 
         if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)])
             self.automaticallyAdjustsScrollViewInsets = NO;
@@ -861,18 +863,23 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)deletePhotoAtIndex:(NSUInteger)index {
     IDMZoomingScrollView *page = [self pageDisplayedAtIndex:index];
-    [page.captionView removeFromSuperview];
-    [page removeFromSuperview];
     
-    [_photos removeObjectAtIndex:index];
-    
-    if (!_photos.count) {
-        [self doneButtonPressed:_doneButton];
-    }
-    else {
-        _currentPageIndex != 0 ? _currentPageIndex-- : _currentPageIndex;
-        [self reloadData];
-    }
+    [self deleteAnimation:page completion:^{
+        [page.captionView removeFromSuperview];
+        [page removeFromSuperview];
+        
+        [_photos removeObjectAtIndex:index];
+        
+        [self updateDeleteButton];
+        
+        if (_photos.count == 0) {
+            [self doneButtonPressed:_doneButton];
+            
+        } else {
+            _currentPageIndex != 0 ? _currentPageIndex-- : _currentPageIndex;
+            [self reloadData];
+        }
+    }];
 }
 
 - (IDMCaptionView *)captionViewForPhotoAtIndex:(NSUInteger)index {
@@ -1343,8 +1350,23 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 }
 
 - (void)deleteButtonPressed:(id)sender {
+    [self updateDeleteButton];
+    
+    if (_limitDelete && _photos.count <= 1) {
+        return;
+    }
+    
     if ([self.delegate respondsToSelector:@selector(photoBrowser:deleteButtonDidTappedWithPhotoIndex:)]) {
         [self.delegate photoBrowser:self deleteButtonDidTappedWithPhotoIndex:_currentPageIndex];
+    }
+}
+
+-(void)updateDeleteButton
+{
+    if (_limitDelete && _photos.count <= 1) {
+        _deleteButton.enabled = NO;
+    } else {
+        _deleteButton.enabled = YES;
     }
 }
 
@@ -1381,6 +1403,38 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 			completion();
 		}];
 	}
+}
+
+-(void) deleteAnimation:(UIView *) view completion:(void (^)(void))completion
+{
+    CGPoint to = CGPointMake(0.25, 0.25);
+    float delay = 0;
+    float duration = 0.5f;
+    
+    POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewScaleXY];
+    anim.toValue = [NSValue valueWithCGPoint:to];
+    anim.beginTime = CACurrentMediaTime() + delay;
+    anim.name = @"scaleXY";
+    anim.duration = duration;
+    
+    [view pop_addAnimation:anim forKey:nil];
+    
+    
+    POPBasicAnimation *anim2 = [POPBasicAnimation animationWithPropertyNamed:kPOPViewAlpha];
+    anim2.toValue = @0;
+    anim2.beginTime = CACurrentMediaTime() + delay;
+    anim2.name = @"alpha";
+    anim2.duration = duration;
+    
+    [view pop_addAnimation:anim2 forKey:nil];
+    
+    
+    if (completion)
+    {
+        [anim2 setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
+            completion();
+        }];
+    }
 }
 
 @end

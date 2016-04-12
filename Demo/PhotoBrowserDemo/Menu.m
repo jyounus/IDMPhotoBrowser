@@ -283,4 +283,10 @@
     [UIAlertView showAlertViewWithTitle:title];
 }
 
+-(void)photoBrowser:(IDMPhotoBrowser *)photoBrowser deleteButtonDidTappedWithPhotoIndex:(NSUInteger)photoIndex
+{
+    NSLog(@"delete was pressed");
+    [photoBrowser deletePhotoAtIndex:photoIndex];
+}
+
 @end
