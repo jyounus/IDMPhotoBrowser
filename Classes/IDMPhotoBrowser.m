@@ -802,7 +802,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     // Toolbar items & navigation
     UIBarButtonItem *fixedLeftSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFixedSpace
                                                                                     target:self action:nil];
-    fixedLeftSpace.width = 32; // To balance action button
+    fixedLeftSpace.width = -16; // To balance action button
     UIBarButtonItem *flexSpace = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemFlexibleSpace
                                                                                target:self action:nil];
     NSMutableArray *items = [NSMutableArray new];
@@ -874,14 +874,17 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         
         [_photos removeObjectAtIndex:index];
         
-        [self updateDeleteButton];
-        
         if (_photos.count == 0) {
             [self doneButtonPressed:_doneButton];
             
         } else {
             _currentPageIndex != 0 ? _currentPageIndex-- : _currentPageIndex;
             [self reloadData];
+            
+            _pagingScrollView.alpha = 0.0f; // fade the new photo in when we delete a picture
+            [UIView animateWithDuration:0.25f animations:^{
+                _pagingScrollView.alpha = 1.0f;
+            }];
         }
     }];
 }
@@ -1365,10 +1368,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     }
 }
 
--(void)updateDeleteButton
-{
+-(void)updateDeleteButton {
     if (_limitDelete && _photos.count <= 1) {
         _deleteButton.enabled = NO;
+        
     } else {
         _deleteButton.enabled = YES;
     }
@@ -1393,52 +1396,59 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 #pragma mark - pop Animation
 
-- (void)animateView:(UIView *)view toFrame:(CGRect)frame completion:(void (^)(void))completion
-{
+- (void)animateView:(UIView *)view toFrame:(CGRect)frame completion:(void (^)(void))completion {
 	POPSpringAnimation *animation = [POPSpringAnimation animationWithPropertyNamed:kPOPViewFrame];
 	[animation setSpringBounciness:6];
 	[animation setDynamicsMass:1];
     [animation setToValue:[NSValue valueWithCGRect:frame]];
 	[view pop_addAnimation:animation forKey:nil];
 
-    if (completion)
-	{
+    if (completion) {
 		[animation setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
 			completion();
 		}];
 	}
 }
 
--(void) deleteAnimation:(UIView *) view completion:(void (^)(void))completion
-{
-    CGPoint to = CGPointMake(0.25, 0.25);
-    float delay = 0;
-    float duration = 0.5f;
+-(void) deleteAnimation:(UIView *) view completion:(void (^)(void))completion {
+    _deleteButton.enabled = NO;
     
-    POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewScaleXY];
-    anim.toValue = [NSValue valueWithCGPoint:to];
-    anim.beginTime = CACurrentMediaTime() + delay;
-    anim.name = @"scaleXY";
-    anim.duration = duration;
+    POPBasicAnimation *preAnim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewScaleXY]; // zoom in
+    preAnim.toValue = [NSValue valueWithCGPoint: CGPointMake(1.1, 1.1)];
+    preAnim.beginTime = CACurrentMediaTime();
+    preAnim.name = @"scaleXY";
+    preAnim.duration = 0.25f;
+    [preAnim setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
+        
+        float duration = 0.4f;
+        
+        POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewScaleXY]; // zoom out
+        anim.toValue = [NSValue valueWithCGPoint: CGPointMake(0.25, 0.25)];
+        anim.beginTime = CACurrentMediaTime();
+        anim.name = @"scaleXY";
+        anim.duration = duration;
+        
+        [view pop_addAnimation:anim forKey:nil];
+        
+        
+        POPBasicAnimation *anim2 = [POPBasicAnimation animationWithPropertyNamed:kPOPViewAlpha]; // fade
+        anim2.toValue = @0;
+        anim2.beginTime = CACurrentMediaTime();
+        anim2.name = @"alpha";
+        anim2.duration = duration;
+        
+        [view pop_addAnimation:anim2 forKey:nil];
+        
+        if (completion) {
+            [anim2 setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
+                completion();
+                
+                [self updateDeleteButton]; // handle delete button state
+            }];
+        }
+    }];
     
-    [view pop_addAnimation:anim forKey:nil];
-    
-    
-    POPBasicAnimation *anim2 = [POPBasicAnimation animationWithPropertyNamed:kPOPViewAlpha];
-    anim2.toValue = @0;
-    anim2.beginTime = CACurrentMediaTime() + delay;
-    anim2.name = @"alpha";
-    anim2.duration = duration;
-    
-    [view pop_addAnimation:anim2 forKey:nil];
-    
-    
-    if (completion)
-    {
-        [anim2 setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
-            completion();
-        }];
-    }
+    [view pop_addAnimation:preAnim forKey:nil];
 }
 
 @end
