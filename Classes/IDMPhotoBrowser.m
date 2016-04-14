@@ -1418,12 +1418,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     preAnim.beginTime = CACurrentMediaTime();
     preAnim.name = @"scaleXY";
     preAnim.duration = 0.25f;
+    preAnim.timingFunction = [CAMediaTimingFunction functionWithName:kCAMediaTimingFunctionEaseOut];
     [preAnim setCompletionBlock:^(POPAnimation *animation, BOOL finished) {
         
         float duration = 0.4f;
         
         POPBasicAnimation *anim = [POPBasicAnimation animationWithPropertyNamed:kPOPViewScaleXY]; // zoom out
-        anim.toValue = [NSValue valueWithCGPoint: CGPointMake(0.25, 0.25)];
+        anim.toValue = [NSValue valueWithCGPoint: CGPointMake(0.0f, 0.0f)];
         anim.beginTime = CACurrentMediaTime();
         anim.name = @"scaleXY";
         anim.duration = duration;
