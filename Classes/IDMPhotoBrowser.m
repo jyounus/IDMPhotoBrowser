@@ -158,6 +158,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
         _initalPageIndex = 0;
         _autoHide = YES;
+        _autoHideInterface = YES;
 
         _displayDoneButton = YES;
         _doneButtonImage = nil;
@@ -412,6 +413,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 }
 
 - (void)performCloseAnimationWithScrollView:(IDMZoomingScrollView*)scrollView {
+
+    if ([_delegate respondsToSelector:@selector(willDisappearPhotoBrowser:)]) {
+        [_delegate willDisappearPhotoBrowser:self];
+    }
+
     float fadeAlpha = 1 - fabs(scrollView.frame.origin.y)/scrollView.frame.size.height;
 
     UIImage *imageFromView = [scrollView.photo underlyingImage];
@@ -674,6 +680,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)viewWillAppear:(BOOL)animated {
     // Update
     [self reloadData];
+
+
+    if ([_delegate respondsToSelector:@selector(willAppearPhotoBrowser:)]) {
+        [_delegate willAppearPhotoBrowser:self];
+    }
 
     // Super
 	[super viewWillAppear:animated];
@@ -1165,7 +1176,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 - (void)scrollViewWillBeginDragging:(UIScrollView *)scrollView {
 	// Hide controls when dragging begins
-	[self setControlsHidden:YES animated:YES permanent:NO];
+    if(_autoHideInterface){
+        [self setControlsHidden:YES animated:YES permanent:NO];
+    }
 }
 
 - (void)scrollViewDidEndDecelerating:(UIScrollView *)scrollView {
@@ -1250,16 +1263,19 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 // Enable/disable control visiblity timer
 - (void)hideControlsAfterDelay {
-	// return;
 
-    if (![self areControlsHidden]) {
+    if (![self autoHideInterface]) {
+        return;
+    }
+
+	if (![self areControlsHidden]) {
         [self cancelControlHiding];
 		_controlVisibilityTimer = [NSTimer scheduledTimerWithTimeInterval:5 target:self selector:@selector(hideControls) userInfo:nil repeats:NO];
 	}
 }
 
 - (BOOL)areControlsHidden { return (_toolbar.alpha == 0); }
-- (void)hideControls      { if(_autoHide) [self setControlsHidden:YES animated:YES permanent:NO]; }
+- (void)hideControls      { if(_autoHide && _autoHideInterface) [self setControlsHidden:YES animated:YES permanent:NO]; }
 - (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO]; }
 
 
@@ -1279,6 +1295,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #pragma mark - Buttons
 
 - (void)doneButtonPressed:(id)sender {
+
+    if ([_delegate respondsToSelector:@selector(willDisappearPhotoBrowser:)]) {
+        [_delegate willDisappearPhotoBrowser:self];
+    }
+
     if (_senderViewForAnimation && _currentPageIndex == _initalPageIndex) {
         IDMZoomingScrollView *scrollView = [self pageDisplayedAtIndex:_currentPageIndex];
         [self performCloseAnimationWithScrollView:scrollView];
