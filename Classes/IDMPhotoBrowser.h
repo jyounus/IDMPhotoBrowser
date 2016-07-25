@@ -49,6 +49,10 @@
 @property (nonatomic, weak) UIImage *doneButtonImage;
 @property (nonatomic, weak) UIColor *trackTintColor, *progressTintColor;
 
+// CUSTOM: added myself
+@property (nonatomic) CGFloat photoBorderWidth;
+@property (nonatomic, weak) UIColor *photoBorderColor;
+
 @property (nonatomic, weak) UIImage *scaleImage;
 
 @property (nonatomic) BOOL arrowButtonsChangePhotosAnimated;

@@ -375,6 +375,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [_applicationWindow addSubview:fadeView];
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
+    
+    // CUSTOM: added myself
+    //resizableImageView.layer.cornerRadius = _senderViewForAnimation.layer.cornerRadius;
+    resizableImageView.layer.masksToBounds = _senderViewForAnimation.layer.masksToBounds;
+    resizableImageView.layer.borderColor = _senderViewForAnimation.layer.borderColor;
+    resizableImageView.layer.borderWidth = _senderViewForAnimation.layer.borderWidth;
+    
     resizableImageView.frame = _senderViewOriginalFrame;
     resizableImageView.clipsToBounds = YES;
     resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
@@ -434,6 +441,13 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
     UIImageView *resizableImageView = [[UIImageView alloc] initWithImage:imageFromView];
     resizableImageView.frame = imageViewFrame;
+    
+    // CUSTOM: added myself
+    resizableImageView.layer.cornerRadius = _senderViewForAnimation.layer.cornerRadius - 5; // -5 for some reason to make it work perfectly with rounded corners
+    resizableImageView.layer.masksToBounds = _senderViewForAnimation.layer.masksToBounds;
+    resizableImageView.layer.borderColor = _senderViewForAnimation.layer.borderColor;
+    resizableImageView.layer.borderWidth = _senderViewForAnimation.layer.borderWidth;
+    
     resizableImageView.contentMode = _senderViewForAnimation ? _senderViewForAnimation.contentMode : UIViewContentModeScaleAspectFill;
     resizableImageView.backgroundColor = [UIColor clearColor];
     resizableImageView.clipsToBounds = YES;

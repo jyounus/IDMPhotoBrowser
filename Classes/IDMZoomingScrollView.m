@@ -45,6 +45,16 @@
 		_photoImageView = [[IDMTapDetectingImageView alloc] initWithFrame:CGRectZero];
 		_photoImageView.tapDelegate = self;
 		_photoImageView.backgroundColor = [UIColor clearColor];
+        
+        // CUSTOM: added myself
+        if (browser.photoBorderWidth) {
+            _photoImageView.layer.borderWidth = browser.photoBorderWidth;
+        }
+        
+        if (browser.photoBorderColor) {
+            _photoImageView.layer.borderColor = browser.photoBorderColor.CGColor;
+        }
+        
 		[self addSubview:_photoImageView];
         
         CGRect screenBound = [[UIScreen mainScreen] bounds];
