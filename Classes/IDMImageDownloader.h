@@ -8,7 +8,7 @@
 
 #import <Foundation/Foundation.h>
 
-@protocol IDMImageDownloader
+@protocol IDMImageDownloaderProtocol
 -(void) downloadImageForURL:(NSURL *)url withProgress:(void (^) (CGFloat progress)) progressCallback andWithSuccessCallback:(void (^) (UIImage *image)) successCallback;
 
 @end
