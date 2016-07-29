@@ -8,7 +8,8 @@
 
 #import <Foundation/Foundation.h>
 #import "IDMPhotoProtocol.h"
-#import <SDWebImage/SDWebImageManager.h>
+#import "IDMImageDownloader.h"
+//#import <SDWebImage/SDWebImageManager.h>
 
 // This class models a photo/image and it's caption
 // If you want to handle photos, caching, decompression
@@ -24,6 +25,7 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 @property (nonatomic, strong) NSURL *photoURL;
 @property (nonatomic, strong) IDMProgressUpdateBlock progressUpdateBlock;
 @property (nonatomic, strong) UIImage *placeholderImage;
+@property (nonatomic, strong) id <IDMImageDownloader> imageDownloader;
 
 // Class
 + (IDMPhoto *)photoWithImage:(UIImage *)image;
@@ -40,4 +42,5 @@ typedef void (^IDMProgressUpdateBlock)(CGFloat progress);
 - (id)initWithURL:(NSURL *)url;
 
 @end
+
 
