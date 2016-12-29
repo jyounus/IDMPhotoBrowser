@@ -49,6 +49,10 @@
 @property (nonatomic, weak) UIImage *doneButtonImage;
 @property (nonatomic, weak) UIColor *trackTintColor, *progressTintColor;
 
+// CUSTOM: added myself
+@property (nonatomic) CGFloat photoBorderWidth;
+@property (nonatomic, weak) UIColor *photoBorderColor;
+
 @property (nonatomic, weak) UIImage *scaleImage;
 
 @property (nonatomic) BOOL arrowButtonsChangePhotosAnimated;
@@ -59,14 +63,19 @@
 
 <<<<<<< HEAD
 @property (nonatomic) BOOL limitDelete;
+@property (nonatomic) BOOL onlyShowDeleteButton;
 
 // defines zooming of the background (default 1.0)
-=======
 // Default value: true. Set to false to tell the photo viewer not to hide the interface when scrolling
+=======
+@property (nonatomic) BOOL dismissOnTouch;
+
+// Default value: true
+// Set to false to tell the photo viewer not to hide the interface when scrolling
+>>>>>>> original/master
 @property (nonatomic) BOOL autoHideInterface;
 
 // Defines zooming of the background (default 1.0)
->>>>>>> 023a9d996c7e3d252b07b1886ccb57ff763a0760
 @property (nonatomic) float backgroundScaleFactor;
 
 // Animation time (default .28)
@@ -75,13 +84,13 @@
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray;
 
-// Init (animated)
+// Init (animated from view)
 - (id)initWithPhotos:(NSArray *)photosArray animatedFromView:(UIView*)view;
 
 // Init with NSURL objects
 - (id)initWithPhotoURLs:(NSArray *)photoURLsArray;
 
-// Init with NSURL objects (animated)
+// Init with NSURL objects (animated from view)
 - (id)initWithPhotoURLs:(NSArray *)photoURLsArray animatedFromView:(UIView*)view;
 
 // Reloads the photo browser and refetches data

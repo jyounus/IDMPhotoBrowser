@@ -61,6 +61,10 @@
 @property (nonatomic) BOOL usePopAnimation;
 @property (nonatomic) BOOL disableVerticalSwipe;
 
+@property (nonatomic) BOOL dismissOnTouch;
+
+// Default value: true
+// Set to false to tell the photo viewer not to hide the interface when scrolling
 @property (nonatomic) BOOL limitDelete;
 @property (nonatomic) BOOL onlyShowDeleteButton;
 
@@ -77,13 +81,13 @@
 // Init
 - (id)initWithPhotos:(NSArray *)photosArray;
 
-// Init (animated)
+// Init (animated from view)
 - (id)initWithPhotos:(NSArray *)photosArray animatedFromView:(UIView*)view;
 
 // Init with NSURL objects
 - (id)initWithPhotoURLs:(NSArray *)photoURLsArray;
 
-// Init with NSURL objects (animated)
+// Init with NSURL objects (animated from view)
 - (id)initWithPhotoURLs:(NSArray *)photoURLsArray animatedFromView:(UIView*)view;
 
 // Reloads the photo browser and refetches data

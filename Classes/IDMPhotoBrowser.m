@@ -114,8 +114,11 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 - (void)cancelControlHiding;
 - (void)hideControlsAfterDelay;
 - (void)setControlsHidden:(BOOL)hidden animated:(BOOL)animated permanent:(BOOL)permanent;
-- (void)toggleControls;
+//- (void)toggleControls;
 - (BOOL)areControlsHidden;
+
+// Interactions
+- (void)handleSingleTap;
 
 // Data
 - (NSUInteger)numberOfPhotos;
@@ -138,6 +141,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 @synthesize forceHideStatusBar = _forceHideStatusBar;
 @synthesize usePopAnimation = _usePopAnimation;
 @synthesize disableVerticalSwipe = _disableVerticalSwipe;
+@synthesize dismissOnTouch = _dismissOnTouch;
 @synthesize actionsSheet = _actionsSheet, activityViewController = _activityViewController;
 @synthesize trackTintColor = _trackTintColor, progressTintColor = _progressTintColor;
 @synthesize delegate = _delegate;
@@ -148,6 +152,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     if ((self = [super init])) {
         // Defaults
         self.hidesBottomBarWhenPushed = YES;
+		
         _currentPageIndex = 0;
 		_performingLayout = NO; // Reset on view did appear
 		_rotating = NO;
@@ -171,6 +176,8 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _forceHideStatusBar = NO;
         _usePopAnimation = NO;
 		_disableVerticalSwipe = NO;
+		
+		_dismissOnTouch = NO;
 
         _useWhiteBackgroundColor = NO;
         _leftArrowImage = _rightArrowImage = _leftArrowSelectedImage = _rightArrowSelectedImage = nil;
@@ -187,25 +194,14 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         _limitDelete = YES;
         _onlyShowDeleteButton = YES;
 
-        if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)])
+		if ([self respondsToSelector:@selector(automaticallyAdjustsScrollViewInsets)]) {
             self.automaticallyAdjustsScrollViewInsets = NO;
-
+		}
+		
         _applicationWindow = [[[UIApplication sharedApplication] delegate] window];
-
-		if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0"))
-		{
-			self.modalPresentationStyle = UIModalPresentationCustom;
-			self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-            self.modalPresentationCapturesStatusBarAppearance = YES;
-		}
-		else
-		{
-			_applicationTopViewController = [self topviewController];
-			_previousModalPresentationStyle = _applicationTopViewController.modalPresentationStyle;
-			_applicationTopViewController.modalPresentationStyle = UIModalPresentationCurrentContext;
-			self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
-		}
-
+		self.modalPresentationStyle = UIModalPresentationCustom;
+		self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
+		self.modalPresentationCapturesStatusBarAppearance = YES;
 		self.modalTransitionStyle = UIModalTransitionStyleCrossDissolve;
 
         // Listen for IDMPhoto notifications
@@ -214,7 +210,7 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
                                                      name:IDMPhoto_LOADING_DID_END_NOTIFICATION
                                                    object:nil];
     }
-
+	
     return self;
 }
 
@@ -420,7 +416,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 }
 
 - (void)performCloseAnimationWithScrollView:(IDMZoomingScrollView*)scrollView {
-
     if ([_delegate respondsToSelector:@selector(willDisappearPhotoBrowser:)]) {
         [_delegate willDisappearPhotoBrowser:self];
     }
@@ -542,21 +537,29 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
         if ([_delegate respondsToSelector:@selector(photoBrowser:didDismissAtPageIndex:)])
             [_delegate photoBrowser:self didDismissAtPageIndex:_currentPageIndex];
 
-		if (SYSTEM_VERSION_LESS_THAN(@"8.0"))
-		{
-			_applicationTopViewController.modalPresentationStyle = _previousModalPresentationStyle;
-		}
+//		if (SYSTEM_VERSION_LESS_THAN(@"8.0"))
+//		{
+//			_applicationTopViewController.modalPresentationStyle = _previousModalPresentationStyle;
+//		}
     }];
 }
 
 - (UIButton*)customToolbarButtonImage:(UIImage*)image imageSelected:(UIImage*)selectedImage action:(SEL)action {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeCustom];
-    [button setBackgroundImage:image forState:UIControlStateNormal];
-    [button setBackgroundImage:selectedImage forState:UIControlStateDisabled];
+    [button setImage:image forState:UIControlStateNormal];
+    [button setImage:selectedImage forState:UIControlStateDisabled];
     [button addTarget:self action:action forControlEvents:UIControlEventTouchUpInside];
     [button setContentMode:UIViewContentModeCenter];
-    [button setFrame:CGRectMake(0,0, image.size.width, image.size.height)];
+    [button setFrame:[self getToolbarButtonFrame:image]];
     return button;
+}
+
+- (CGRect)getToolbarButtonFrame:(UIImage *)image{
+    BOOL const isRetinaHd = ((float)[[UIScreen mainScreen] scale] > 2.0f);
+    float const defaultButtonSize = isRetinaHd ? 66.0f : 44.0f;
+    CGFloat buttonWidth = (image.size.width > defaultButtonSize) ? image.size.width : defaultButtonSize;
+    CGFloat buttonHeight = (image.size.height > defaultButtonSize) ? image.size.width : defaultButtonSize;
+    return CGRectMake(0,0, buttonWidth, buttonHeight);
 }
 
 - (UIImage*)getImageFromView:(UIView *)view {
@@ -865,8 +868,9 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
     [self tilePages];
     _performingLayout = NO;
 
-	if(! _disableVerticalSwipe)
+	if(! _disableVerticalSwipe) {
 		[self.view addGestureRecognizer:_panGesture];
+	}
 }
 
 #pragma mark - Data
@@ -1262,8 +1266,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 	// Control hiding timer
 	// Will cancel existing timer but only begin hiding if they are visible
-	if (!permanent) [self hideControlsAfterDelay];
-
+	if (!permanent) {
+		[self hideControlsAfterDelay];
+	}
+	
     [self setNeedsStatusBarAppearanceUpdate];
 }
 
@@ -1277,7 +1283,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
 // Enable/disable control visiblity timer
 - (void)hideControlsAfterDelay {
-
     if (![self autoHideInterface]) {
         return;
     }
@@ -1288,9 +1293,22 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 	}
 }
 
-- (BOOL)areControlsHidden { return (_toolbar.alpha == 0); }
-- (void)hideControls      { if(_autoHide && _autoHideInterface) [self setControlsHidden:YES animated:YES permanent:NO]; }
-- (void)toggleControls    { [self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO]; }
+- (BOOL)areControlsHidden {
+	return (_toolbar.alpha == 0);
+}
+
+- (void)hideControls {
+	if(_autoHide && _autoHideInterface) {
+		[self setControlsHidden:YES animated:YES permanent:NO];
+	}
+}
+- (void)handleSingleTap {
+	if (_dismissOnTouch) {
+		[self doneButtonPressed:nil];
+	} else {
+		[self setControlsHidden:![self areControlsHidden] animated:YES permanent:NO];
+	}
+}
 
 
 #pragma mark - Properties
@@ -1309,7 +1327,6 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 #pragma mark - Buttons
 
 - (void)doneButtonPressed:(id)sender {
-
     if ([_delegate respondsToSelector:@selector(willDisappearPhotoBrowser:)]) {
         [_delegate willDisappearPhotoBrowser:self];
     }
@@ -1339,20 +1356,10 @@ NSLocalizedStringFromTableInBundle((key), nil, [NSBundle bundleWithPath:[[NSBund
 
             __typeof__(self) __weak selfBlock = self;
 
-			if (SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(@"8.0"))
-			{
-				[self.activityViewController setCompletionWithItemsHandler:^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
-					[selfBlock hideControlsAfterDelay];
-					selfBlock.activityViewController = nil;
-				}];
-			}
-			else
-			{
-				[self.activityViewController setCompletionHandler:^(NSString *activityType, BOOL completed) {
-					[selfBlock hideControlsAfterDelay];
-					selfBlock.activityViewController = nil;
-				}];
-			}
+			[self.activityViewController setCompletionWithItemsHandler:^(NSString *activityType, BOOL completed, NSArray *returnedItems, NSError *activityError) {
+				[selfBlock hideControlsAfterDelay];
+				selfBlock.activityViewController = nil;
+			}];
 
 			if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone) {
 				[self presentViewController:self.activityViewController animated:YES completion:nil];

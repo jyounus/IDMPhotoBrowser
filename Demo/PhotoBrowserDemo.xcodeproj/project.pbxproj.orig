@@ -70,8 +70,11 @@
 		4C6F97D014AF760500F8389A /* photo3m.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo3m.jpg; path = Photos/photo3m.jpg; sourceTree = "<group>"; };
 		4C6F97D114AF760500F8389A /* photo4l.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo4l.jpg; path = Photos/photo4l.jpg; sourceTree = "<group>"; };
 		4C6F97D214AF760500F8389A /* photo4m.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo4m.jpg; path = Photos/photo4m.jpg; sourceTree = "<group>"; };
+<<<<<<< HEAD
 		65551C071D4BDEB50045B095 /* IDMImageDownloader.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = IDMImageDownloader.h; sourceTree = "<group>"; };
+=======
 		64F5714840012BFE47F8331B /* libPods-PhotoBrowserDemo.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-PhotoBrowserDemo.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+>>>>>>> original/master
 		727988B0187B3B5400966C66 /* IDMPBLocalizations.bundle */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.plug-in"; path = IDMPBLocalizations.bundle; sourceTree = "<group>"; };
 		727988B6187B3CF100966C66 /* IDMPhotoBrowser.podspec */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = IDMPhotoBrowser.podspec; path = ../../IDMPhotoBrowser.podspec; sourceTree = "<group>"; };
 		D00FA320EEACA8C835D9D626 /* Pods-PhotoBrowserDemo.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-PhotoBrowserDemo.debug.xcconfig"; path = "Pods/Target Support Files/Pods-PhotoBrowserDemo/Pods-PhotoBrowserDemo.debug.xcconfig"; sourceTree = "<group>"; };
